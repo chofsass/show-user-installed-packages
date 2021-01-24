@@ -3,7 +3,7 @@
 import os
 import gzip
 
-def get_installed_package():
+def get_installed_packages():
     if not os.path.exists('/var/lib/dpkg/status'):
         print('could not find dpkg status file "/var/lib/dpkg/status"')
         exit()
@@ -74,7 +74,7 @@ def get_auto_installed_packages():
     return auto_installed_packages
 
 if __name__ == "__main__":
-    installed_packages = get_installed_package()
+    installed_packages = get_installed_packages()
     initial_packages = get_packages_apart_of_initial_installation()
     auto_installed_packages = get_auto_installed_packages()
 
