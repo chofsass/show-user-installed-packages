@@ -25,6 +25,9 @@ def get_installed_packages():
     # filter out packages that do not have a status of 'install ok installed'
     installed_packages = list(filter(lambda x: x[1] == 'install ok installed', installed_packages))
 
+    # map the 2D list to a 1D list with only the package name
+    installed_packages = list(map(lambda x: x[0], installed_packages))
+
     return installed_packages
 
 def get_packages_apart_of_initial_installation():
@@ -51,6 +54,7 @@ def get_auto_installed_packages():
         print('could not find extended_states "/var/lib/apt/extended_states"')
         exit()
 
+    auto_installed_packages = {}
     packages = []
     lines = []
 
@@ -65,8 +69,7 @@ def get_auto_installed_packages():
         elif line.startswith("Auto-Installed:"):
             packages[-1].append(line.replace("Auto-Installed:", "").strip())
 
-    auto_installed_packages = {}
-
+    # put auto installed packages in a lookup table
     for package in packages:
         if package[1] == "1":
             auto_installed_packages[package[0]] = True
@@ -82,8 +85,8 @@ if __name__ == "__main__":
 
     # extract all packages that are not apart of the initial install and were not installed automatically as a dependency
     for package in installed_packages:
-        if package[0] not in initial_packages and package[0] not in auto_installed_packages:
-            user_manually_installed_packages.append(package[0])
+        if package not in initial_packages and package not in auto_installed_packages:
+            user_manually_installed_packages.append(package)
 
     user_manually_installed_packages = sorted(user_manually_installed_packages)
 
