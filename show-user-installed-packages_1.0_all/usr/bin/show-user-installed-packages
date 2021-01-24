@@ -1,0 +1,92 @@
+#! /usr/bin/env python3
+
+import os
+import gzip
+
+def get_installed_package():
+    if not os.path.exists('/var/lib/dpkg/status'):
+        print('could not find dpkg status file "/var/lib/dpkg/status"')
+        exit()
+
+    installed_package = []
+    lines = []
+
+    # read in the package status info and split it line by line
+    with open('/var/lib/dpkg/status', 'r') as fp:
+        lines = fp.read().split("\n")
+
+    # extract each packages name and status
+    for line in lines:
+        if line.startswith("Package:"):
+            installed_package.append([line.replace("Package:", "").strip()])
+        elif line.startswith("Status:"):
+            installed_package[-1].append(line.replace("Status:", "").strip())
+
+    # filter out packages that do not have a status of 'install ok installed'
+    installed_package = list(filter(lambda x: x[1] == 'install ok installed', installed_package))
+
+    return installed_package
+
+def get_packages_apart_of_initial_installation():
+    if not os.path.exists('/var/log/installer/initial-status.gz'):
+        print('could not find initial-status file "/var/log/installer/initial-status.gz"')
+        exit()
+
+    initial_packages = {}
+    lines = []
+
+    # read in the package status info and split it line by line
+    with gzip.open('/var/log/installer/initial-status.gz', 'r') as fp:
+        lines = fp.read().decode('utf-8').split("\n")
+
+    # extract each packages name 
+    for line in lines:
+        if line.startswith("Package:"):
+            initial_packages[line.replace("Package:", "").strip()] = True
+
+    return initial_packages
+
+def get_auto_installed_packages():
+    if not os.path.exists('/var/lib/apt/extended_states'):
+        print('could not find extended_states "/var/lib/apt/extended_states"')
+        exit()
+
+    packages = []
+    lines = []
+
+    # read in the package status info and split it line by line
+    with open('/var/lib/apt/extended_states', 'r') as fp:
+        lines = fp.read().split("\n")
+
+    # extract the each packages name and status
+    for line in lines:
+        if line.startswith("Package:"):
+            packages.append([line.replace("Package:", "").strip()])
+        elif line.startswith("Auto-Installed:"):
+            packages[-1].append(line.replace("Auto-Installed:", "").strip())
+
+    auto_installed_packages = {}
+
+    for package in packages:
+        if package[1] == "1":
+            auto_installed_packages[package[0]] = True
+
+    return auto_installed_packages
+
+if __name__ == "__main__":
+    installed_package = get_installed_package()
+    initial_packages = get_packages_apart_of_initial_installation()
+    auto_installed_packages = get_auto_installed_packages()
+
+    user_manually_installed_packages = []
+
+    # extract all packages that are not apart of the initial install and were not installed automatically as a dependency
+    for package in installed_package:
+        if package[0] not in initial_packages and package[0] not in auto_installed_packages:
+            user_manually_installed_packages.append(package[0])
+
+    user_manually_installed_packages = sorted(user_manually_installed_packages)
+
+    for x in user_manually_installed_packages:
+        print(x)
+

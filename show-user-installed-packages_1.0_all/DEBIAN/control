@@ -1,0 +1,8 @@
+Package: show-user-installed-packages
+Version: 1.0
+Architecture: all
+Essential: no
+Priority: optional
+Depends: debhelper (>= 9), python3 (>= 3.6)
+Maintainer: Nathaniel Corey Hofsass
+Description: show-user-installed-packages is a program that displays all packages explicitly installed by the user
